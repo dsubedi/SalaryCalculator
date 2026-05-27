@@ -3,9 +3,9 @@ import pandas as pd
 import numpy as np
 
 # 1. PAGE CORE SETUP
-st.set_page_config(page_title="Nepal Civil Service Pay Calculator", layout="wide")
-st.title("🇳🇵 नेपाल निजामती सेवा - Historical Pay Calculator")
-st.write("Calculates exact lifecycle cumulative earnings based on precise appointment and promotion dates (BS).")
+st.set_page_config(page_title="Civil Service Pay Calculator by dsubedi", layout="wide")
+st.title("🇳🇵 नेपाल निजामती सेवा - Pay Calculator by Devi Subedi")
+st.write("For General Reference only. Calculates exact lifecycle cumulative earnings based on appointment and promotion dates (BS).")
 
 # 2. SEED CONSTANTS FROM "संघीय तलबमान_iwxnybh.pdf"
 SCALE_YEARS = [2041, 2043, 2047, 2049, 2052, 2054, 2057, 2060, 2062, 2065, 2066, 2068, 2071, 2073, 2074, 2075, 2076, 2078, 2079]
