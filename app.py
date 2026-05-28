@@ -164,10 +164,14 @@ if st.button("तलव हिसाव गर्नुहोस", type="primary
 
 # ... (All of your previous calculation code, buttons, and st.success blocks remain above) ...
 
+
 # ==========================================
 # 6. APP FOOTER & VISITOR COUNTER
 # ==========================================
 st.write("---") # Adds a clean horizontal divider line above the footer
+
+# Define the variable right here so Python never hits a NameError
+app_identifier = "nepal-civil-service-salary-calculator"
 
 # Create three columns to center the counter perfectly at the bottom
 foot_col1, foot_col2, foot_col3 = st.columns([2, 1, 2])
@@ -178,3 +182,5 @@ with foot_col2:
     st.html(
         f'<img src="https://visitor-badge.laobi.icu/badge?page_id={app_identifier}&left_color=gray&right_color=green" alt="Total Visitors">'
     )
+
+
