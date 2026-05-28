@@ -1,11 +1,41 @@
 import streamlit as st
-import pandas as pd
 import numpy as np
+from streamlit_gsheets import GSheetsConnection
+import pandas as pd
 
 # 1. PAGE SETUP & TITLES
 st.set_page_config(page_title="dsubedi Nijamati Pay Calculator जम्मा तलव हिसाव", layout="wide")
 st.title("🇳🇵 निजामती सेवा - Pay Calculator - by Devi Subedi")
 st.write("For Personal Reference only.")
+
+# 1. Establish the Google Sheets Connection
+# Ensure you add "st-gsheets-connection" to your requirements.txt file!
+conn = st.connection("gsheets", type=GSheetsConnection)
+
+def increment_and_get_hits():
+    try:
+        # Read the current count from your public Google Sheet link
+        # In production, paste your sheet URL inside your streamlit secrets configuration
+        df = conn.read(spreadsheet="YOUR_GOOGLE_SHEET_URL_HERE", ttl=0)
+        current_hits = int(df.iloc[0]['hits'])
+        
+        # Increment the count by 1
+        new_hits = current_hits + 1
+        
+        # Write it back to update the cell persistently
+        updated_df = pd.DataFrame({"hits": [new_hits]})
+        conn.update(spreadsheet="YOUR_GOOGLE_SHEET_URL_HERE", data=updated_df)
+        
+        return new_hits
+    except:
+        # Fallback safe anchor so your app never crashes if the sheet connection times out
+        return "Active"
+
+# 2. Execute tracking and display metric in sidebar footer
+total_visitors = increment_and_get_hits()
+st.sidebar.markdown("---")
+st.sidebar.metric(label="👤 App Counter", value=total_visitors)
+
 
 # 2. SEED MATRIX TIMELINES (31 SCALE MILESTONES)
 SCALE_YEARS = [
@@ -160,3 +190,4 @@ if st.button("तलव हिसाव गर्नुहोस", type="primary
         with col2:
             st.write("**Chained Payroll Distributions View:**")
             st.dataframe(df_res.style.format({"Total Earnings": "Rs. {:,.0f}"}), hide_index=True)
+
