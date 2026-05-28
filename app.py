@@ -120,7 +120,7 @@ def calculate_salary_logic(df_raw):
 
 # 5. USER INTERFACE FORM DESIGN
 st.subheader("Step 1: Map Your Sequential Appointment & Promotion Dates (सुरू देखिका आफ्ना हरेक पदको नियुक्ति/बढुवा मिति लेख्दै जानुहोस ।")
-st.info("💡 **Instructions:** Enter only the start dates for your positions. The app will automatically calculate the end date based on your next promotion. You only need to provide an end date for the final row. प्रत्येक पदको सुरू मिति मात्र लेख्नुहोला । अन्तिम पदमा मात्र अन्तिम मिति वा जुन मितिसम्मको तलव हिसाव गर्ने हो, सो मिति लेख्नुहोला । हामीले तपाइको ग्रेड रकम र दशै खर्च समेत संलग्न गरी देखाउने छौं ।")
+st.info("💡 **Instructions:** Enter only the start dates for your positions. The app will automatically calculate the end date based on your next promotion. You only need to provide an end date for the final row. \nनोटः प्रत्येक पदको सुरू मिति मात्र लेख्नुहोला । अन्तिम पदमा मात्र अन्तिम मिति वा जुन मितिसम्मको तलव हिसाव गर्ने हो, सो मिति लेख्नुहोला । हामीले तपाइको ग्रेड रकम र दशै खर्च समेत संलग्न गरी देखाउने छौं ।")
 
 # Preloaded profile case showcasing hands-free chaining architecture
 init_profile = {
