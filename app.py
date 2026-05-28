@@ -2,126 +2,158 @@ import streamlit as st
 import pandas as pd
 import numpy as np
 
-# 1. PAGE CORE SETUP
-st.set_page_config(page_title="Civil Service Pay Calculator by dsubedi", layout="wide")
-st.title("🇳🇵 नेपाल निजामती सेवा - Pay Calculator by Devi Subedi")
-st.write("For General Reference only. Calculates exact lifecycle cumulative earnings based on appointment and promotion dates (BS).")
+# 1. PAGE SETUP & TITLES
+st.set_page_config(page_title="Nepal Civil Service Pay App", layout="wide")
+st.title("🇳🇵 निजामती सेवा - Pay Calculator - by Devi Subedi")
+st.write("For Personal Reference only.")
 
-# 2. SEED CONSTANTS FROM "संघीय तलबमान_iwxnybh.pdf"
-SCALE_YEARS = [2041, 2043, 2047, 2049, 2052, 2054, 2057, 2060, 2062, 2065, 2066, 2068, 2071, 2073, 2074, 2075, 2076, 2078, 2079]
+# 2. SEED MATRIX TIMELINES (31 SCALE MILESTONES)
+SCALE_YEARS = [
+    2017, 2022, 2030, 2032, 2033, 2035, 2038, 2041, 2042, 2043, 2045, 2047, 2049, 2052, 
+    2054, 2057, 2062, 2064, 2065, 2066, 2068, 2070, 2071, 2073, 2075, 2076, 2078, 2079
+]
 RANKS = ["Chief Secretary", "Secretary", "Joint Secretary", "Under Secretary", "Section Officer", "Nayab Subba", "Khardar"]
 CATEGORIES = ["Non-Technical", "Technical"]
 
 base_salaries_2079 = {"Chief Secretary": 77211, "Secretary": 72082, "Joint Secretary": 56787, "Under Secretary": 49380, "Section Officer": 43689, "Nayab Subba": 34730, "Khardar": 32902}
 grade_rates_2079 = {"Chief Secretary": 2574, "Secretary": 2403, "Joint Secretary": 1893, "Under Secretary": 1646, "Section Officer": 1457, "Nayab Subba": 1158, "Khardar": 1097}
 grade_caps_2079 = {"Chief Secretary": 2, "Secretary": 2, "Joint Secretary": 8, "Under Secretary": 8, "Section Officer": 8, "Nayab Subba": 10, "Khardar": 10}
-year_multipliers = {2041: 0.035, 2043: 0.042, 2047: 0.055, 2049: 0.072, 2052: 0.095, 2054: 0.120, 2057: 0.160, 2060: 0.210, 2062: 0.250, 2065: 0.360, 2066: 0.400, 2068: 0.480, 2071: 0.650, 2073: 0.810, 2074: 0.810, 2075: 0.810, 2076: 0.940, 2078: 0.940, 2079: 1.000}
 
-# 3. BACK-END CORE CALCULATION ENGINE
-def get_scale_metrics(rank, year):
+year_multipliers = {
+    2017: 0.0006, 2022: 0.0009, 2030: 0.0011, 2032: 0.0012, 2033: 0.0013, 2035: 0.0014, 2038: 0.0020,
+    2041: 0.0350, 2042: 0.0350, 2043: 0.0420, 2045: 0.0450, 2047: 0.0550, 2049: 0.0720, 2052: 0.0950,
+    2054: 0.1200, 2057: 0.1600, 2062: 0.2500, 2064: 0.3300, 2065: 0.3600, 2066: 0.4000, 2068: 0.4800,
+    2070: 0.5500, 2071: 0.6500, 2073: 0.8100, 2075: 0.8100, 2076: 0.9400, 2078: 0.9400, 2079: 1.0000
+}
+
+# 3. HISTORICAL TIMELINE SCALE METRICS EXTRACTOR
+def get_historical_metrics(rank, year):
     if not rank or rank not in base_salaries_2079:
-        return 0, 0, 0
-    # Step-down lookback rule calculation
-    effective_year = 2041
+        return 0, 0, 0, 0, 0
+    effective_year = 2017
     for sy in SCALE_YEARS:
-        if sy <= year:
-            effective_year = sy
-        else:
-            break
+        if sy <= year: effective_year = sy
+        else: break
     mult = year_multipliers[effective_year]
-    basic = int(base_salaries_2079[rank] * mult)
-    grade_r = int(grade_rates_2079[rank] * mult)
     
-    if basic < 300: # Fallback adjustments for early years
-        adjustments = {"Chief Secretary": 1850, "Secretary": 1700, "Joint Secretary": 1350, "Under Secretary": 1150, "Section Officer": 950, "Nayab Subba": 650, "Khardar": 450}
-        basic = int(adjustments[rank] * (mult / 0.035))
-        grade_r = int(basic * 0.03)
-    if grade_r == 0:
-        grade_r = max(1, int(basic * 0.03))
-    return basic, grade_r, grade_caps_2079[rank]
+    if effective_year < 2033: # Pre-2033 Legacy Dual-Grade adjustments[cite: 2]
+        adjustments = {
+            "Chief Secretary": (900, 50, 6, 0, 0), "Secretary": (700, 40, 5, 0, 0),
+            "Joint Secretary": (500, 20, 6, 30, 6), "Under Secretary": (450, 20, 6, 30, 6),
+            "Section Officer": (275, 12.5, 8, 15, 7), "Nayab Subba": (175, 7.5, 10, 10, 5),
+            "Khardar": (120, 5, 10, 6, 5)
+        }
+        base, r1, c1, r2, c2 = adjustments[rank]
+        scale_factor = mult / 0.0006
+        return int(base * scale_factor), int(r1 * scale_factor), c1, int(r2 * scale_factor), c2
+    else: # Modern standard unified architecture ruleset
+        return int(base_salaries_2079[rank] * mult), int(grade_rates_2079[rank] * mult), grade_caps_2079[rank], 0, 0
 
-def calculate_salary_logic(df):
-    grand_total = 0
-    breakdown_list = []
+# 4. DATA ENGINE WITH DYNAMIC LINKED-LIST TIMELINE INTERPOLATION
+def calculate_salary_logic(df_raw):
+    # Filter empty row placeholders cleanly
+    df = df_raw.dropna(subset=['Post / Rank', 'Start Year (BS)', 'Start Month']).copy()
+    df = df[df['Post / Rank'].str.strip() != ""].reset_index(drop=True)
     
-    for _, row in df.iterrows():
+    if df.empty:
+        return 0, pd.DataFrame()
+        
+    # Sort chronologically to prevent random entry rows from bleeding data
+    df = df.sort_values(by=['Start Year (BS)', 'Start Month']).reset_index(drop=True)
+    
+    # --- CRUCIAL: AUTOMATED DATE-CHAINING INTERPOLATION LAYER ---
+    for i in range(len(df) - 1):
+        next_year = int(df.loc[i+1, 'Start Year (BS)'])
+        next_month = int(df.loc[i+1, 'Start Month'])
+        
+        # Step back exactly 1 month from the subsequent post's appointment marker
+        if next_month == 1:
+            df.loc[i, 'End Year (BS)'] = next_year - 1
+            df.loc[i, 'End Month'] = 12
+        else:
+            df.loc[i, 'End Year (BS)'] = next_year
+            df.loc[i, 'End Month'] = next_month - 1
+
+    grand_total = 0
+    breakdown = []
+    
+    # Loop over resolved continuous timeline blocks
+    for idx, row in df.iterrows():
         rank = row['Post / Rank']
-        if not rank or pd.isna(rank) or str(rank).strip() == "":
-            continue
         sy, sm = int(row['Start Year (BS)']), int(row['Start Month'])
-        ey, em = int(row['End Year (BS)']), int(row['End Month'])
         
-        block_earnings = 0
-        start_linear_months = (sy * 12) + sm
-        
-        for current_year in range(sy, ey + 1):
-            s_m = sm if current_year == sy else 1
-            e_m = em if current_year == ey else 12
+        if pd.isna(row['End Year (BS)']) or pd.isna(row['End Month']):
+            st.error(f"Validation Error: Please ensure you specify the final 'End Year (BS)' and 'End Month' in your last career row choice.")
+            return 0, pd.DataFrame()
             
-            for current_month in range(s_m, e_m + 1):
-                curr_linear = (current_year * 12) + current_month
-                months_elapsed = curr_linear - start_linear_months
+        ey, em = int(row['End Year (BS)']), int(row['End Month'])
+        block_payout = 0
+        start_linear = (sy * 12) + sm
+        
+        for curr_year in range(sy, ey + 1):
+            m_start = sm if curr_year == sy else 1
+            m_end = em if curr_year == ey else 12
+            
+            for curr_month in range(m_start, m_end + 1):
+                curr_linear = (curr_year * 12) + curr_month
+                months_elapsed = curr_linear - start_linear
                 
                 # Enforce completed 12-month seniority blocks
                 completed_years = months_elapsed // 12
-                basic, rate, cap = get_scale_metrics(rank, current_year)
+                basic, r1, c1, r2, c2 = get_historical_metrics(rank, curr_year)
                 
-                # Enforce grade number caps
-                applied_grades = min(completed_years, cap)
-                monthly_payout = basic + (applied_grades * rate)
-                
-                # Enforce Ashwin month Dashain bonus (Month 6)
-                if current_month == 6:
-                    monthly_payout *= 2
+                # Execute Grade Calculations
+                if r2 > 0: # Pre-2033 dual-grade ruleset
+                    if completed_years <= c1: grade_pay = completed_years * r1
+                    else: grade_pay = (c1 * r1) + (min(completed_years - c1, c2) * r2)
+                else: # Modern standard single ceiling ruleset
+                    grade_pay = min(completed_years, c1) * r1
                     
-                block_earnings += monthly_payout
+                monthly_gross = basic + grade_pay
+                if curr_month == 6: monthly_gross *= 2 # Ashwin Dashain Bonus filter trigger
+                block_payout += monthly_gross
                 
-        grand_total += block_earnings
-        breakdown_list.append({"Post": rank, "Timeline": f"{sy}/{sm} - {ey}/{em}", "Total Earnings": block_earnings})
-    return grand_total, pd.DataFrame(breakdown_list)
+        grand_total += block_payout
+        breakdown.append({"Post / Rank": rank, "Tenure Window (BS)": f"{sy}/{sm} to {ey}/{em}", "Total Earnings": block_payout})
+        
+    return grand_total, pd.DataFrame(breakdown)
 
-# 4. FRONT-END INTERACTIVE INTERFACE
-st.subheader("Step 1: Enter Promotion Grid Details")
-st.caption("Double-click any field to modify variables. Add lines at the bottom for new promotions.")
+# 5. USER INTERFACE FORM DESIGN
+st.subheader("Step 1: Map Your Sequential Appointment & Promotion Dates")
+st.info("💡 **Instructions:** Enter only the start dates for your positions. The app will automatically calculate the end date based on your next promotion. You only need to provide an end date for the final row.")
 
-init_data = {
+# Preloaded profile case showcasing hands-free chaining architecture
+init_profile = {
     "Post / Rank": ["Khardar", "Nayab Subba", "Section Officer", ""],
     "Category": ["Non-Technical", "Non-Technical", "Non-Technical", ""],
     "Start Year (BS)": [2054, 2061, 2068, None],
     "Start Month": [4, 4, 7, None],
-    "End Year (BS)": [2061, 2068, 2079, None],
-    "End Month": [3, 6, 12, None]
+    "End Year (BS)": [None, None, 2079, None], # Only final row requires input
+    "End Month": [None, None, 12, None]        # Only final row requires input
 }
-df_input = pd.DataFrame(init_data)
+df_profile = pd.DataFrame(init_profile)
 
-edited_df = st.data_editor(
-    df_input,
+edited_grid = st.data_editor(
+    df_profile,
     num_rows="dynamic",
     column_config={
         "Post / Rank": st.column_config.SelectboxColumn(options=RANKS, required=True),
         "Category": st.column_config.SelectboxColumn(options=CATEGORIES, required=True),
-        "Start Year (BS)": st.column_config.NumberColumn(min_value=2041, max_value=2085, format="%d"),
+        "Start Year (BS)": st.column_config.NumberColumn(min_value=2017, max_value=2085, format="%d"),
         "Start Month": st.column_config.SelectboxColumn(options=list(range(1, 13))),
-        "End Year (BS)": st.column_config.NumberColumn(min_value=2041, max_value=2085, format="%d"),
-        "End Month": st.column_config.SelectboxColumn(options=list(range(1, 13))),
+        "End Year (BS)": st.column_config.NumberColumn(min_value=2017, max_value=2085, format="%d", help="Fill this out ONLY for your current/last position."),
+        "End Month": st.column_config.SelectboxColumn(options=list(range(1, 13)), help="Fill this out ONLY for your current/last position."),
     }
 )
 
-# 5. EXECUTION BLOCK
 st.write("---")
-if st.button("Calculate Live Salary Statement", type="primary"):
-    try:
-        grand_total, df_res = calculate_salary_logic(edited_df)
-        
-        if grand_total > 0:
-            st.success("### Calculation Complete!")
-            col1, col2 = st.columns([1, 2])
-            with col1:
-                st.metric(label="GRAND CUMULATIVE LIFETIME SALARY", value=f"Rs. {grand_total:,.0f}")
-            with col2:
-                st.write("**Earnings Breakdown by Assignment Block:**")
-                st.dataframe(df_res.style.format({"Total Earnings": "Rs. {:,.0f}"}), hide_index=True)
-        else:
-            st.warning("Please ensure at least one promotion block row contains completed entries.")
-    except Exception as e:
-        st.error(f"Input Alignment Error: Please verify that all year and month fields are complete. Details: {e}") 
+if st.button("Calculate Live Statement", type="primary"):
+    grand_total, df_res = calculate_salary_logic(edited_grid)
+    if grand_total > 0:
+        st.success("### System Processing Complete!")
+        col1, col2 = st.columns([1, 2])
+        with col1:
+            st.metric(label="LIFETIME FINANCIAL ACCUMULATION", value=f"Rs. {grand_total:,.0f}")
+        with col2:
+            st.write("**Chained Payroll Distributions View:**")
+            st.dataframe(df_res.style.format({"Total Earnings": "Rs. {:,.0f}"}), hide_index=True)
