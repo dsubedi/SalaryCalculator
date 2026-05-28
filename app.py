@@ -8,33 +8,20 @@ st.set_page_config(page_title="dsubedi Nijamati Pay Calculator जम्मा �
 st.title("🇳🇵 निजामती सेवा - Pay Calculator - by Devi Subedi")
 st.write("For Personal Reference only.")
 
-# 1. Establish the Google Sheets Connection
-# Ensure you add "st-gsheets-connection" to your requirements.txt file!
-conn = st.connection("gsheets", type=GSheetsConnection)
+# ==========================================
+# 1. PAGE CORE SETUP
+# ==========================================
+st.set_page_config(page_title="Nepal Civil Service Pay App", layout="wide")
+st.title("🇳🇵 नेपाल निजामती सेवा - Complete Historical Pay Calculator (२०१७ - २०७९ BS)")
+st.write("Dynamic career lifecycle earnings tool featuring Auto-Chaining Date Boundaries.")
 
-def increment_and_get_hits():
-    try:
-        # Read the current count from your public Google Sheet link
-        # In production, paste your sheet URL inside your streamlit secrets configuration
-        df = conn.read(spreadsheet="YOUR_GOOGLE_SHEET_URL_HERE", ttl=0)
-        current_hits = int(df.iloc[0]['hits'])
-        
-        # Increment the count by 1
-        new_hits = current_hits + 1
-        
-        # Write it back to update the cell persistently
-        updated_df = pd.DataFrame({"hits": [new_hits]})
-        conn.update(spreadsheet="YOUR_GOOGLE_SHEET_URL_HERE", data=updated_df)
-        
-        return new_hits
-    except:
-        # Fallback safe anchor so your app never crashes if the sheet connection times out
-        return "Active"
+# Paste this exact block to display the automatic badge:
+app_identifier = "nepal-civil-service-salary-calculator" 
 
-# 2. Execute tracking and display metric in sidebar footer
-total_visitors = increment_and_get_hits()
+st.sidebar.markdown(
+    f"[![Hits](https://hits.seeyoufarm.com/api/count/incr/badge.svg?url=https%3A%2F%2Fgithub.com%2Fdsubedi%2F{app_identifier}&count_bg=%230E6251&title_bg=%23555555&icon=&icon_color=%23E7E7E7&title=Total+Visitors&edge_flat=false)](https://hits.seeyoufarm)"
+)
 st.sidebar.markdown("---")
-st.sidebar.metric(label="👤 App Counter", value=total_visitors)
 
 
 # 2. SEED MATRIX TIMELINES (31 SCALE MILESTONES)
