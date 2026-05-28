@@ -1,38 +1,11 @@
 import streamlit as st
 import numpy as np
-from streamlit_gsheets import GSheetsConnection
 import pandas as pd
 
 # 1. PAGE SETUP & TITLES
 st.set_page_config(page_title="dsubedi Nijamati Pay Calculator जम्मा तलव हिसाव", layout="wide")
 st.title("🇳🇵 निजामती सेवा - Pay Calculator - by Devi Subedi")
 st.write("For Personal Reference only.")
-
-# ==========================================
-# 1. PAGE CORE SETUP
-# ==========================================
-st.set_page_config(page_title="Nepal Civil Service Pay App", layout="wide")
-st.title("🇳🇵 नेपाल निजामती सेवा - Complete Historical Pay Calculator (२०१७ - २०७९ BS)")
-st.write("Dynamic career lifecycle earnings tool featuring Auto-Chaining Date Boundaries.")
-
-# 🟢 THE INLINE HTML VISITOR TALLY COUNTER:
-app_identifier = "nepal-civil-service-salary-calculator"
-
-with st.sidebar:
-    st.write("**📊 System Analytics**")
-    # This pulls a secure inline SVG image that displays live numerical hits instantly
-    st.html(
-        f'<img src="https://visitor-badge.laobi.icu/badge?page_id={app_identifier}&left_color=gray&right_color=green" alt="Total Visitors">'
-    )
-    st.markdown("---") # Adds a clean divider line under the badge
-
-# ==========================================
-# 2. SEED MATRIX TIMELINES (31 SCALE MILESTONES)
-# ==========================================
-# ... your remaining code continues below completely unchanged ...
-
-
-
 
 # 2. SEED MATRIX TIMELINES (31 SCALE MILESTONES)
 SCALE_YEARS = [
@@ -188,3 +161,20 @@ if st.button("तलव हिसाव गर्नुहोस", type="primary
             st.write("**Chained Payroll Distributions View:**")
             st.dataframe(df_res.style.format({"Total Earnings": "Rs. {:,.0f}"}), hide_index=True)
 
+
+# ... (All of your previous calculation code, buttons, and st.success blocks remain above) ...
+
+# ==========================================
+# 6. APP FOOTER & VISITOR COUNTER
+# ==========================================
+st.write("---") # Adds a clean horizontal divider line above the footer
+
+# Create three columns to center the counter perfectly at the bottom
+foot_col1, foot_col2, foot_col3 = st.columns([2, 1, 2])
+
+with foot_col2:
+    st.caption("📊 **System Analytics**")
+    # Pulls the live numerical hit counter centrally in the footer
+    st.html(
+        f'<img src="https://visitor-badge.laobi.icu/badge?page_id={app_identifier}&left_color=gray&right_color=green" alt="Total Visitors">'
+    )
