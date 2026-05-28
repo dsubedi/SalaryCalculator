@@ -15,13 +15,14 @@ st.set_page_config(page_title="Nepal Civil Service Pay App", layout="wide")
 st.title("🇳🇵 नेपाल निजामती सेवा - Complete Historical Pay Calculator (२०१७ - २०७९ BS)")
 st.write("Dynamic career lifecycle earnings tool featuring Auto-Chaining Date Boundaries.")
 
-# Paste this exact block to display the automatic badge:
-app_identifier = "nepal-civil-service-salary-calculator" 
+# 🟢 REPLACE WITH THIS FIXED LIVE COUNTER (hitscounter.dev):
+app_identifier = "nepal-civil-service-salary-calculator"
 
 st.sidebar.markdown(
-    f"[![Hits](https://hits.seeyoufarm.com/api/count/incr/badge.svg?url=https%3A%2F%2Fgithub.com%2Fdsubedi%2F{app_identifier}&count_bg=%230E6251&title_bg=%23555555&icon=&icon_color=%23E7E7E7&title=Total+Visitors&edge_flat=false)](https://hits.seeyoufarm)"
+    f"[![Hits](https://hitscounter.dev/user/github/dsubedi/{app_identifier}?color=0E6251&label=Total+Visitors&style=flat-square&show_today=false)](https://hitscounter.dev)"
 )
-st.sidebar.markdown("---")
+st.sidebar.markdown("---") # Adds a clean divider line under the badge
+
 
 
 # 2. SEED MATRIX TIMELINES (31 SCALE MILESTONES)
