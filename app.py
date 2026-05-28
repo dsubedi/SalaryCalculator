@@ -15,13 +15,22 @@ st.set_page_config(page_title="Nepal Civil Service Pay App", layout="wide")
 st.title("🇳🇵 नेपाल निजामती सेवा - Complete Historical Pay Calculator (२०१७ - २०७९ BS)")
 st.write("Dynamic career lifecycle earnings tool featuring Auto-Chaining Date Boundaries.")
 
-# 🟢 REPLACE WITH THIS FIXED LIVE COUNTER (hitscounter.dev):
+# 🟢 THE INLINE HTML VISITOR TALLY COUNTER:
 app_identifier = "nepal-civil-service-salary-calculator"
 
-st.sidebar.markdown(
-    f"[![Hits](https://hitscounter.dev/user/github/dsubedi/{app_identifier}?color=0E6251&label=Total+Visitors&style=flat-square&show_today=false)](https://hitscounter.dev)"
-)
-st.sidebar.markdown("---") # Adds a clean divider line under the badge
+with st.sidebar:
+    st.write("**📊 System Analytics**")
+    # This pulls a secure inline SVG image that displays live numerical hits instantly
+    st.html(
+        f'<img src="https://visitor-badge.laobi.icu/badge?page_id={app_identifier}&left_color=gray&right_color=green" alt="Total Visitors">'
+    )
+    st.markdown("---") # Adds a clean divider line under the badge
+
+# ==========================================
+# 2. SEED MATRIX TIMELINES (31 SCALE MILESTONES)
+# ==========================================
+# ... your remaining code continues below completely unchanged ...
+
 
 
 
