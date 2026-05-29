@@ -5,7 +5,8 @@ import pandas as pd
 # 1. PAGE SETUP & TITLES
 st.set_page_config(page_title="dsubedi Nijamati Pay Calculator जम्मा तलव हिसाव", layout="wide")
 st.title("🇳🇵 निजामती सेवा - Pay Calculator - by Devi Subedi")
-st.write("For Personal Reference only.")
+st.write("For Personal Reference only. Not Official Software. No official Legitimacy.")
+st.write("यो व्यक्तिगत तवरमा तयार पारिएको सफ्टवेयर हो। अफिसियल मान्यता दिँदैन । आफ्नो तलव आँकलन गर्न सघाउ पुगोस् भनेर स्वयंसेवाका रूपमा तयार पारिएको हो ।")
 
 # 2. SEED MATRIX TIMELINES (31 SCALE MILESTONES)
 SCALE_YEARS = [
