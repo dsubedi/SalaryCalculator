@@ -14,13 +14,53 @@ SCALE_YEARS = [
     2017, 2022, 2030, 2032, 2033, 2035, 2038, 2041, 2042, 2043, 2045, 2047, 2049, 2052, 
     2054, 2057, 2062, 2064, 2065, 2066, 2068, 2070, 2071, 2073, 2075, 2076, 2078, 2079
 ]
-RANKS = ["Chief Secretary", "Secretary", "Joint Secretary", "Under Secretary", "Section Officer", "Nayab Subba", "Khardar"]
+RANKS = [
+    "Chief Secretary", "Secretary", "Joint Secretary", "Under Secretary", 
+    "Section Officer", "Nayab Subba", "Khardar", "Mukhiya", "NG Class IV", "Classless"
+]
 CATEGORIES = ["Non-Technical", "Technical"]
 
-base_salaries_2079 = {"Chief Secretary": 77211, "Secretary": 72082, "Joint Secretary": 56787, "Under Secretary": 49380, "Section Officer": 43689, "Nayab Subba": 34730, "Khardar": 32902}
-grade_rates_2079 = {"Chief Secretary": 2574, "Secretary": 2403, "Joint Secretary": 1893, "Under Secretary": 1646, "Section Officer": 1457, "Nayab Subba": 1158, "Khardar": 1097}
-grade_caps_2079 = {"Chief Secretary": 2, "Secretary": 2, "Joint Secretary": 8, "Under Secretary": 8, "Section Officer": 8, "Nayab Subba": 10, "Khardar": 10}
+# 🟢 ADJUSTED 2079 BASE SALARIES:
+base_salaries_2079 = {
+    "Chief Secretary": 77211, 
+    "Secretary": 72082, 
+    "Joint Secretary": 56787, 
+    "Under Secretary": 49380, 
+    "Section Officer": 43689, 
+    "Nayab Subba": 34730, 
+    "Khardar": 32902,
+    "Mukhiya": 32010,       # Matching your naming choice
+    "NG Class IV": 24010,   # Matching your naming choice
+    "Classless": 23010      # Matching your naming choice
+}
 
+# 🟢 ADJUSTED GRADE INCREMENT RATES:
+grade_rates_2079 = {
+    "Chief Secretary": 2574, 
+    "Secretary": 2403, 
+    "Joint Secretary": 1893, 
+    "Under Secretary": 1646, 
+    "Section Officer": 1457, 
+    "Nayab Subba": 1158, 
+    "Khardar": 1097,
+    "Mukhiya": 801,
+    "NG Class IV": 801,
+    "Classless": 767
+}
+
+# 🟢 ADJUSTED CEILING CEILINGS (GRADE CAPS):
+grade_caps_2079 = {
+    "Chief Secretary": 2, 
+    "Secretary": 2, 
+    "Joint Secretary": 8, 
+    "Under Secretary": 8, 
+    "Section Officer": 8, 
+    "Nayab Subba": 10, 
+    "Khardar": 10,
+    "Mukhiya": 2,           # Capped as per ledger
+    "NG Class IV": 6,       # Capped as per ledger
+    "Classless": 5          # Capped as per ledger
+}
 year_multipliers = {
     2017: 0.0006, 2022: 0.0009, 2030: 0.0011, 2032: 0.0012, 2033: 0.0013, 2035: 0.0014, 2038: 0.0020,
     2041: 0.0350, 2042: 0.0350, 2043: 0.0420, 2045: 0.0450, 2047: 0.0550, 2049: 0.0720, 2052: 0.0950,
@@ -38,12 +78,18 @@ def get_historical_metrics(rank, year):
         else: break
     mult = year_multipliers[effective_year]
     
-    if effective_year < 2033: # Pre-2033 Legacy Dual-Grade adjustments[cite: 2]
+if effective_year < 2033: 
         adjustments = {
-            "Chief Secretary": (900, 50, 6, 0, 0), "Secretary": (700, 40, 5, 0, 0),
-            "Joint Secretary": (500, 20, 6, 30, 6), "Under Secretary": (450, 20, 6, 30, 6),
-            "Section Officer": (275, 12.5, 8, 15, 7), "Nayab Subba": (175, 7.5, 10, 10, 5),
-            "Khardar": (120, 5, 10, 6, 5)
+            "Chief Secretary": (900, 50, 6, 0, 0), 
+            "Secretary": (700, 40, 5, 0, 0),
+            "Joint Secretary": (500, 20, 6, 30, 6), 
+            "Under Secretary": (450, 20, 6, 30, 6),
+            "Section Officer": (275, 12.5, 8, 15, 7), 
+            "Nayab Subba": (175, 7.5, 10, 10, 5),
+            "Khardar": (120, 5, 10, 6, 5),
+            "Mukhiya": (75, 3, 10, 4, 5),          # Adjusted Label
+            "NG Class IV": (55, 2, 10, 2.5, 4),     # Adjusted Label
+            "Classless": (45, 1, 10, 1.5, 10)       # Adjusted Label
         }
         base, r1, c1, r2, c2 = adjustments[rank]
         scale_factor = mult / 0.0006
