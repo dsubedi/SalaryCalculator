@@ -68,17 +68,23 @@ year_multipliers = {
     2070: 0.5500, 2071: 0.6500, 2073: 0.8100, 2075: 0.8100, 2076: 0.9400, 2078: 0.9400, 2079: 1.0000
 }
 
+# ==========================================
 # 3. HISTORICAL TIMELINE SCALE METRICS EXTRACTOR
+# ==========================================
 def get_historical_metrics(rank, year):
     if not rank or rank not in base_salaries_2079:
         return 0, 0, 0, 0, 0
+        
     effective_year = 2017
     for sy in SCALE_YEARS:
-        if sy <= year: effective_year = sy
-        else: break
+        if sy <= year:
+            effective_year = sy
+        else:
+            break
+            
     mult = year_multipliers[effective_year]
     
-if effective_year < 2033: 
+    if effective_year < 2033: 
         adjustments = {
             "Chief Secretary": (900, 50, 6, 0, 0), 
             "Secretary": (700, 40, 5, 0, 0),
@@ -87,15 +93,18 @@ if effective_year < 2033:
             "Section Officer": (275, 12.5, 8, 15, 7), 
             "Nayab Subba": (175, 7.5, 10, 10, 5),
             "Khardar": (120, 5, 10, 6, 5),
-            "Mukhiya": (75, 3, 10, 4, 5),          # Adjusted Label
-            "NG Class IV": (55, 2, 10, 2.5, 4),     # Adjusted Label
-            "Classless": (45, 1, 10, 1.5, 10)       # Adjusted Label
+            "Mukhiya": (75, 3, 10, 4, 5),
+            "NG Class IV": (55, 2, 10, 2.5, 4),
+            "Classless": (45, 1, 10, 1.5, 10)
         }
         base, r1, c1, r2, c2 = adjustments[rank]
         scale_factor = mult / 0.0006
         return int(base * scale_factor), int(r1 * scale_factor), c1, int(r2 * scale_factor), c2
-    else: # Modern standard unified architecture ruleset
-        return int(base_salaries_2079[rank] * mult), int(grade_rates_2079[rank] * mult), grade_caps_2079[rank], 0, 0
+    else:
+        # Standard unified architecture ruleset
+        basic = int(base_salaries_2079[rank] * mult)
+        grade_r = int(grade_rates_2079[rank] * mult)
+        return basic, grade_r, grade_caps_2079[rank], 0, 0
 
 # 4. DATA ENGINE WITH DYNAMIC LINKED-LIST TIMELINE INTERPOLATION
 def calculate_salary_logic(df_raw):
