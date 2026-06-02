@@ -113,7 +113,7 @@ def calculate_salary_logic(df_raw):
     df = df[df['Post / Rank'].str.strip() != ""].reset_index(drop=True)
     
     if df.empty:
-        return 0, pd.DataFrame()
+        return 0, pd.DataFrame(), pd.DataFrame()
         
     # Sort chronologically to prevent random entry rows from bleeding data
     df = df.sort_values(by=['Start Year (BS)', 'Start Month']).reset_index(drop=True)
@@ -132,7 +132,8 @@ def calculate_salary_logic(df_raw):
             df.loc[i, 'End Month'] = next_month - 1
 
     grand_total = 0
-    breakdown = []
+    breakdown_by_post = []
+    breakdown_by_year = []
     
     # Loop over resolved continuous timeline blocks
     for idx, row in df.iterrows():
@@ -141,11 +142,10 @@ def calculate_salary_logic(df_raw):
         
         if pd.isna(row['End Year (BS)']) or pd.isna(row['End Month']):
             st.error(f"Validation Error: Please ensure you specify the final 'End Year (BS)' and 'End Month' in your last career row choice.")
-            return 0, pd.DataFrame()
+            return 0, pd.DataFrame(), pd.DataFrame()
             
         ey, em = int(row['End Year (BS)']), int(row['End Month'])
         
-        # Isolated component containers for each separate post block
         block_salary = 0
         block_grade = 0
         block_festival = 0
@@ -155,6 +155,11 @@ def calculate_salary_logic(df_raw):
         for curr_year in range(sy, ey + 1):
             m_start = sm if curr_year == sy else 1
             m_end = em if curr_year == ey else 12
+            
+            # Temporary track containers for the single precise year sub-loop
+            year_salary = 0
+            year_grade = 0
+            year_festival = 0
             
             for curr_month in range(m_start, m_end + 1):
                 curr_linear = (curr_year * 12) + curr_month
@@ -173,20 +178,32 @@ def calculate_salary_logic(df_raw):
                 else: # Modern standard single ceiling ruleset
                     grade_pay = min(completed_years, c1) * r1
                     
-                # Calculate basic salary component
-                block_salary += basic
-                # Calculate grade earnings component
-                block_grade += grade_pay
+                year_salary += basic
+                year_grade += grade_pay
                 
                 # Execute Ashwin Dashain Bonus filter trigger (Month 6 = Ashwin)
                 if curr_month == 6: 
-                    block_festival += (basic + grade_pay)
+                    year_festival += (basic + grade_pay)
+            
+            # Aggregate year-specific elements down to the structural block tracking lists
+            block_salary += year_salary
+            block_grade += year_grade
+            block_festival += year_festival
+            
+            year_total = year_salary + year_grade + year_festival
+            breakdown_by_year.append({
+                "Year": f"{curr_year} BS",
+                "Post": rank,
+                "Salary": year_salary,
+                "Grade": year_grade,
+                "Festival": year_festival,
+                "Total Payout": year_total
+            })
                     
         block_total = block_salary + block_grade + block_festival
         grand_total += block_total
         
-        # Append all requested items structurally to our list
-        breakdown.append({
+        breakdown_by_post.append({
             "Post": rank, 
             "Tenure Window": f"{sy}/{sm:02d} to {ey}/{em:02d}", 
             "Total Salary Amt": block_salary,
@@ -195,14 +212,14 @@ def calculate_salary_logic(df_raw):
             "Grand Total Earnings": block_total
         })
         
-    return grand_total, pd.DataFrame(breakdown)
+    return grand_total, pd.DataFrame(breakdown_by_post), pd.DataFrame(breakdown_by_year)
 
 # 5. USER INTERFACE FORM DESIGN
 st.subheader("Step 1: Map Your Sequential Appointment & Promotion Dates ")
 st.subheader("       सुरू देखिका आफ्ना हरेक पदको सुरू नियुक्ति वा बढुवा मिति क्रमशः लेखँदै जानुहोस ।")
 st.info("💡 **Instructions:** Enter only the start dates for your positions. The app will automatically calculate the end date based on your next promotion. You only need to provide an end date for the final row.")
 st.info("💡 ** नोटः प्रत्येक पदको सुरू मिति मात्र लेख्नुहोला । अन्तिम पदमा मात्र अन्तिम मिति वा जुन मितिसम्मको तलव हिसाव गर्ने हो, सो मिति लेख्नुहोला । हामीले तपाइको ग्रेड रकम र दशै खर्च समेत संलग्न गरी देखाउने छौं ।")
-st.info("💡 ** नोटः पद छान्न Post मा Double Click गर्नुहोला । कुनै पनि रेकर्ड हटाउन रेकर्डको सुरूमा क्लिक गरी Delete गर्नुहोला। रेकर्ड थप्न तल पट्टि नयाँ कोठामा क्लिक गरी लेख्नुहोला । ")
+st.info("💡 ** नोटः पद छान्न Post मा Double Click गर्नुहोला । कुनै पनि रेकرد हटाउन रेकर्डको सुरूमा क्लिक गरी Delete गर्नुहोला। रेकर्ड थप्न तल पट्टि नयाँ कोठामा क्लिक गरी लेख्नुहोला । ")
 
 # Preloaded profile case showcasing hands-free chaining architecture
 init_profile = {
@@ -230,7 +247,7 @@ edited_grid = st.data_editor(
 
 st.write("---")
 if st.button("तलव हिसाव गर्नुहोस", type="primary"):
-    grand_total, df_res = calculate_salary_logic(edited_grid)
+    grand_total, df_res, df_yearly = calculate_salary_logic(edited_grid)
     if grand_total > 0:
         st.success("### System Processing Complete!")
         
@@ -249,6 +266,19 @@ if st.button("तलव हिसाव गर्नुहोस", type="primary
         })
         
         st.dataframe(formatted_df, use_container_width=True, hide_index=True)
+        st.write("---")
+        
+        # 🟢 NEW COMPONENT: OPTIONAL YEAR-BY-YEAR DETAILED DROPDOWN EXPANDER
+        with st.expander("🔍 View Year-by-Year Detailed Breakdown (वर्षगत विस्तृत विवरण हेर्नुहोस्)"):
+            st.write("Detailed chronological audit history generated directly from active Personnel Record matrices:")
+            
+            formatted_yearly_df = df_yearly.style.format({
+                "Salary": "Rs. {:,.0f}",
+                "Grade": "Rs. {:,.0f}",
+                "Festival": "Rs. {:,.0f}",
+                "Total Payout": "Rs. {:,.0f}"
+            })
+            st.dataframe(formatted_yearly_df, use_container_width=True, hide_index=True)
 
 
 # ==========================================
