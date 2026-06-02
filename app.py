@@ -6,8 +6,7 @@ import pandas as pd
 st.set_page_config(page_title="dsubedi Nijamati Pay Calculator जम्मा तलव हिसाव", layout="wide")
 st.title("🇳🇵 Nijamati Pay Calculator - by Devi P. Subedi")
 st.write("© dsubedi@gmail.com")
-st.write("For Personal Reference only. Not Official Software. No official Legitimacy. यो व्यक्तिगत तवरमा तयार पारिएको सफ्टवेयर हो। अफिसियल मान्यता दिँदैन । आफ्नो तलव आँकलन गर्न सघाउ पुगोस् भनेर स्वयंसेवाका रूपमा तयार पारिएको हो ।")
-st.write("यसमा २०१७ साल देखि २०७९ सालसम्मका तलव, ग्रेड र ग्रेड सीमा तथा दशै खर्चका विवरण मात्र हिसाव गरिएको छ। विशेष भत्ता, दुर्गम भत्ता लगायत अन्य सुविधा समावेश छैनन ।")
+st.write("For Personal Reference only. Not Official Software. No official Legitimacy. यो व्यक्तिगत तवरमा तयार पारिएको सफ्टवेयर हो। अफिसियल मान्यता दिँदैन । आफ्नो तलव आँकलन गर्न सघाउ पुगोस् भनेर स्वयंसेवाका रूपमा तयार पारिएको हो। यसमा २०१७ साल देखि २०७९ सालसम्मका तलव, ग्रेड र ग्रेड सीमा तथा दशै खर्चका विवरण मात्र हिसाव गरिएको छ। विशेष भत्ता, दुर्गम भत्ता लगायत अन्य सुविधा समावेश छैनन।")
 
 # 2. SEED MATRIX TIMELINES (31 SCALE MILESTONES)
 SCALE_YEARS = [
