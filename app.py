@@ -1,3 +1,8 @@
+To break down the calculation block into individual columns (**Total Salary Amt**, **Total Grade Amt**, and **Total Festival Allowance Amt**), we need to track these components independently inside the inner loops of the `calculate_salary_logic` function.
+
+Here is the fully modified, production-ready code with the adjusted engine and explicit column formatting updates.
+
+```python
 import streamlit as st
 import numpy as np
 import pandas as pd
@@ -29,9 +34,9 @@ base_salaries_2079 = {
     "Section Officer": 43689, 
     "Nayab Subba": 34730, 
     "Khardar": 32902,
-    "Mukhiya": 32010,       # Matching your naming choice
-    "NG Class IV": 24010,   # Matching your naming choice
-    "Classless": 23010      # Matching your naming choice
+    "Mukhiya": 32010,       
+    "NG Class IV": 24010,   
+    "Classless": 23010      
 }
 
 # 🟢 ADJUSTED GRADE INCREMENT RATES:
@@ -57,9 +62,9 @@ grade_caps_2079 = {
     "Section Officer": 8, 
     "Nayab Subba": 10, 
     "Khardar": 10,
-    "Mukhiya": 2,           # Capped as per ledger
-    "NG Class IV": 6,       # Capped as per ledger
-    "Classless": 5          # Capped as per ledger
+    "Mukhiya": 2,           
+    "NG Class IV": 6,       
+    "Classless": 5          
 }
 year_multipliers = {
     2017: 0.0006, 2022: 0.0009, 2030: 0.0011, 2032: 0.0012, 2033: 0.0013, 2035: 0.0014, 2038: 0.0020,
@@ -144,7 +149,12 @@ def calculate_salary_logic(df_raw):
             return 0, pd.DataFrame()
             
         ey, em = int(row['End Year (BS)']), int(row['End Month'])
-        block_payout = 0
+        
+        # Isolated component containers for each separate post block
+        block_salary = 0
+        block_grade = 0
+        block_festival = 0
+        
         start_linear = (sy * 12) + sm
         
         for curr_year in range(sy, ey + 1):
@@ -161,23 +171,40 @@ def calculate_salary_logic(df_raw):
                 
                 # Execute Grade Calculations
                 if r2 > 0: # Pre-2033 dual-grade ruleset
-                    if completed_years <= c1: grade_pay = completed_years * r1
-                    else: grade_pay = (c1 * r1) + (min(completed_years - c1, c2) * r2)
+                    if completed_years <= c1: 
+                        grade_pay = completed_years * r1
+                    else: 
+                        grade_pay = (c1 * r1) + (min(completed_years - c1, c2) * r2)
                 else: # Modern standard single ceiling ruleset
                     grade_pay = min(completed_years, c1) * r1
                     
-                monthly_gross = basic + grade_pay
-                if curr_month == 6: monthly_gross *= 2 # Ashwin Dashain Bonus filter trigger
-                block_payout += monthly_gross
+                # Calculate basic salary component
+                block_salary += basic
+                # Calculate grade earnings component
+                block_grade += grade_pay
                 
-        grand_total += block_payout
-        breakdown.append({"Post / Rank": rank, "Tenure Window (BS)": f"{sy}/{sm} to {ey}/{em}", "Total Earnings": block_payout})
+                # Execute Ashwin Dashain Bonus filter trigger (Month 6 = Ashwin)
+                if curr_month == 6: 
+                    block_festival += (basic + grade_pay)
+                    
+        block_total = block_salary + block_grade + block_festival
+        grand_total += block_total
+        
+        # Append all requested items structurally to our list
+        breakdown.append({
+            "Post": rank, 
+            "Tenure Window": f"{sy}/{sm:02d} to {ey}/{em:02d}", 
+            "Total Salary Amt": block_salary,
+            "Total Grade Amt": block_grade,
+            "Total Festival Allowance Amt": block_festival,
+            "Grand Total Earnings": block_total
+        })
         
     return grand_total, pd.DataFrame(breakdown)
 
 # 5. USER INTERFACE FORM DESIGN
 st.subheader("Step 1: Map Your Sequential Appointment & Promotion Dates ")
-st.subheader("        सुरू देखिका आफ्ना हरेक पदको सुरू नियुक्ति वा बढुवा मिति क्रमशः लेख्दै जानुहोस ।")
+st.subheader("       सुरू देखिका आफ्ना हरेक पदको सुरू नियुक्ति वा बढुवा मिति क्रमशः लेख्दै जानुहोस ।")
 st.info("💡 **Instructions:** Enter only the start dates for your positions. The app will automatically calculate the end date based on your next promotion. You only need to provide an end date for the final row.")
 st.info("💡 ** नोटः प्रत्येक पदको सुरू मिति मात्र लेख्नुहोला । अन्तिम पदमा मात्र अन्तिम मिति वा जुन मितिसम्मको तलव हिसाव गर्ने हो, सो मिति लेख्नुहोला । हामीले तपाइको ग्रेड रकम र दशै खर्च समेत संलग्न गरी देखाउने छौं ।")
 st.info("💡 ** नोटः पद छान्न Post मा Double Click गर्नुहोला । कुनै पनि रेकर्ड हटाउन रेकर्डको सुरूमा क्लिक गरी Delete गर्नुहोला। रेकर्ड थप्न तल पट्टि नयाँ कोठामा क्लिक गरी लेख्नुहोला । ")
@@ -188,8 +215,8 @@ init_profile = {
     "Category": ["Non-Technical", "Non-Technical", "Non-Technical", ""],
     "Start Year (BS)": [2054, 2061, 2068, None],
     "Start Month": [4, 4, 7, None],
-    "End Year (BS)": [None, None, 2079, None], # Only final row requires input
-    "End Month": [None, None, 12, None]        # Only final row requires input
+    "End Year (BS)": [None, None, 2079, None], 
+    "End Month": [None, None, 12, None]        
 }
 df_profile = pd.DataFrame(init_profile)
 
@@ -211,33 +238,36 @@ if st.button("तलव हिसाव गर्नुहोस", type="primary
     grand_total, df_res = calculate_salary_logic(edited_grid)
     if grand_total > 0:
         st.success("### System Processing Complete!")
-        col1, col2 = st.columns([1, 2])
-        with col1:
-            st.metric(label="तपाइको जिन्दगीभरको तलवी कमाइको अनुमानित हिसावः)", value=f"Rs. {grand_total:,.0f}")
-        with col2:
-            st.write("**Chained Payroll Distributions View:**")
-            st.dataframe(df_res.style.format({"Total Earnings": "Rs. {:,.0f}"}), hide_index=True)
-
-
-# ... (All of your previous calculation code, buttons, and st.success blocks remain above) ...
+        
+        # Display summary container metrics
+        st.metric(label="तपाइको जिन्दगीभरको तलवी कमाइको अनुमानित हिसावः)", value=f"Rs. {grand_total:,.0f}")
+        st.write("---")
+        
+        st.write("**Chained Payroll Distributions View:**")
+        
+        # Apply standard currency formatting style properties to all requested amount columns
+        formatted_df = df_res.style.format({
+            "Total Salary Amt": "Rs. {:,.0f}",
+            "Total Grade Amt": "Rs. {:,.0f}",
+            "Total Festival Allowance Amt": "Rs. {:,.0f}",
+            "Grand Total Earnings": "Rs. {:,.0f}"
+        })
+        
+        st.dataframe(formatted_df, use_container_width=True, hide_index=True)
 
 
 # ==========================================
 # 6. APP FOOTER & VISITOR COUNTER
 # ==========================================
-st.write("---") # Adds a clean horizontal divider line above the footer
+st.write("---") 
 
-# Define the variable right here so Python never hits a NameError
 app_identifier = "nepal-civil-service-salary-calculator"
-
-# Create three columns to center the counter perfectly at the bottom
 foot_col1, foot_col2, foot_col3 = st.columns([2, 1, 2])
 
 with foot_col2:
     st.caption("📊 **System Analytics**")
-    # Pulls the live numerical hit counter centrally in the footer
     st.html(
         f'<img src="https://visitor-badge.laobi.icu/badge?page_id={app_identifier}&left_color=gray&right_color=green" alt="Total Visitors">'
     )
 
-
+```
