@@ -1,8 +1,3 @@
-To break down the calculation block into individual columns (**Total Salary Amt**, **Total Grade Amt**, and **Total Festival Allowance Amt**), we need to track these components independently inside the inner loops of the `calculate_salary_logic` function.
-
-Here is the fully modified, production-ready code with the adjusted engine and explicit column formatting updates.
-
-```python
 import streamlit as st
 import numpy as np
 import pandas as pd
@@ -204,7 +199,7 @@ def calculate_salary_logic(df_raw):
 
 # 5. USER INTERFACE FORM DESIGN
 st.subheader("Step 1: Map Your Sequential Appointment & Promotion Dates ")
-st.subheader("       सुरू देखिका आफ्ना हरेक पदको सुरू नियुक्ति वा बढुवा मिति क्रमशः लेख्दै जानुहोस ।")
+st.subheader("       सुरू देखिका आफ्ना हरेक पदको सुरू नियुक्ति वा बढुवा मिति क्रमशः लेखँदै जानुहोस ।")
 st.info("💡 **Instructions:** Enter only the start dates for your positions. The app will automatically calculate the end date based on your next promotion. You only need to provide an end date for the final row.")
 st.info("💡 ** नोटः प्रत्येक पदको सुरू मिति मात्र लेख्नुहोला । अन्तिम पदमा मात्र अन्तिम मिति वा जुन मितिसम्मको तलव हिसाव गर्ने हो, सो मिति लेख्नुहोला । हामीले तपाइको ग्रेड रकम र दशै खर्च समेत संलग्न गरी देखाउने छौं ।")
 st.info("💡 ** नोटः पद छान्न Post मा Double Click गर्नुहोला । कुनै पनि रेकर्ड हटाउन रेकर्डको सुरूमा क्लिक गरी Delete गर्नुहोला। रेकर्ड थप्न तल पट्टि नयाँ कोठामा क्लिक गरी लेख्नुहोला । ")
@@ -269,5 +264,3 @@ with foot_col2:
     st.html(
         f'<img src="https://visitor-badge.laobi.icu/badge?page_id={app_identifier}&left_color=gray&right_color=green" alt="Total Visitors">'
     )
-
-```
