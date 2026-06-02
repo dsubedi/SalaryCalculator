@@ -269,7 +269,7 @@ if st.button("तलव हिसाव गर्नुहोस", type="primary
         st.write("---")
         
         # 🟢 NEW COMPONENT: OPTIONAL YEAR-BY-YEAR DETAILED DROPDOWN EXPANDER
-        with st.expander("🔍 View Year-by-Year Detailed Breakdown (वर्षगत विस्तृत विवरण हेर्नुहोस्)"):
+        with st.expander("🔍 हरेक वर्षको विस्तृत विवरण हेर्नुहोस् (View Year-by-Year Detailed Breakdown)"):
             st.write("Detailed chronological audit history generated directly from active Personnel Record matrices:")
             
             formatted_yearly_df = df_yearly.style.format({
