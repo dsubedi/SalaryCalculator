@@ -4,10 +4,9 @@ import pandas as pd
 
 # 1. PAGE SETUP & TITLES
 st.set_page_config(page_title="dsubedi Nijamati Pay Calculator जम्मा तलव हिसाव", layout="wide")
-st.title("🇳🇵 निजामती सेवा - Pay Calculator - by Devi Subedi")
-st.write("For Personal Reference only. Not Official Software. No official Legitimacy.")
-st.write("यो व्यक्तिगत तवरमा तयार पारिएको सफ्टवेयर हो। अफिसियल मान्यता दिँदैन । आफ्नो तलव आँकलन गर्न सघाउ पुगोस् भनेर स्वयंसेवाका रूपमा तयार पारिएको हो ।")
-st.write("यसमा २०१७ साल देखि २०७९ सालसम्मका तलव, ग्रेड र ग्रेड सीमा तथा दशै खर्चका विवरण मात्र हिसाव गरिएको छ। विशेष भत्ता, दुर्गम भत्ता लगायत अन्य सुविधा समावेश छैनन ।")
+st.title("🇳🇵 Nijamati Pay Calculator - by Devi P. Subedi")
+st.write("© dsubedi@gmail.com")
+st.write("For Personal Reference only. Not Official Software. No official Legitimacy. यो व्यक्तिगत तवरमा तयार पारिएको सफ्टवेयर हो। अफिसियल मान्यता दिँदैन । आफ्नो तलव आँकलन गर्न सघाउ पुगोस् भनेर स्वयंसेवाका रूपमा तयार पारिएको हो। यसमा २०१७ साल देखि २०७९ सालसम्मका तलव, ग्रेड र ग्रेड सीमा तथा दशै खर्चका विवरण मात्र हिसाव गरिएको छ। विशेष भत्ता, दुर्गम भत्ता लगायत अन्य सुविधा समावेश छैनन।")
 
 # 2. SEED MATRIX TIMELINES (31 SCALE MILESTONES)
 SCALE_YEARS = [
@@ -20,7 +19,7 @@ RANKS = [
 ]
 CATEGORIES = ["Non-Technical", "Technical"]
 
-# ADJUSTED 2079 BASE SALARIES:
+# 🟢 ADJUSTED 2079 BASE SALARIES:
 base_salaries_2079 = {
     "Chief Secretary": 77211, 
     "Secretary": 72082, 
@@ -34,7 +33,7 @@ base_salaries_2079 = {
     "Classless": 23010      
 }
 
-# ADJUSTED GRADE INCREMENT RATES:
+# 🟢 ADJUSTED GRADE INCREMENT RATES:
 grade_rates_2079 = {
     "Chief Secretary": 2574, 
     "Secretary": 2403, 
@@ -48,7 +47,7 @@ grade_rates_2079 = {
     "Classless": 767
 }
 
-# ADJUSTED CEILING CEILINGS (GRADE CAPS):
+# 🟢 ADJUSTED CEILING CEILINGS (GRADE CAPS):
 grade_caps_2079 = {
     "Chief Secretary": 2, 
     "Secretary": 2, 
@@ -107,20 +106,23 @@ def get_historical_metrics(rank, year):
         return basic, grade_r, grade_caps_2079[rank], 0, 0
 
 # 4. DATA ENGINE WITH DYNAMIC LINKED-LIST TIMELINE INTERPOLATION
-def calculate_salary_logic(df_raw, savings_pct, interest_rate):
+def calculate_salary_logic(df_raw):
+    # Filter empty row placeholders cleanly
     df = df_raw.dropna(subset=['Post / Rank', 'Start Year (BS)', 'Start Month']).copy()
     df = df[df['Post / Rank'].str.strip() != ""].reset_index(drop=True)
     
     if df.empty:
-        return 0, 0, pd.DataFrame(), pd.DataFrame()
+        return 0, pd.DataFrame(), pd.DataFrame()
         
+    # Sort chronologically to prevent random entry rows from bleeding data
     df = df.sort_values(by=['Start Year (BS)', 'Start Month']).reset_index(drop=True)
     
-    # --- AUTOMATED DATE-CHAINING INTERPOLATION LAYER ---
+    # --- CRUCIAL: AUTOMATED DATE-CHAINING INTERPOLATION LAYER ---
     for i in range(len(df) - 1):
         next_year = int(df.loc[i+1, 'Start Year (BS)'])
         next_month = int(df.loc[i+1, 'Start Month'])
         
+        # Step back exactly 1 month from the subsequent post's appointment marker
         if next_month == 1:
             df.loc[i, 'End Year (BS)'] = next_year - 1
             df.loc[i, 'End Month'] = 12
@@ -129,10 +131,6 @@ def calculate_salary_logic(df_raw, savings_pct, interest_rate):
             df.loc[i, 'End Month'] = next_month - 1
 
     grand_total = 0
-    total_accumulated_savings = 0.0
-    monthly_interest_rate = (interest_rate / 100.0) / 12.0
-    savings_factor = savings_pct / 100.0
-    
     breakdown_by_post = []
     breakdown_by_year = []
     
@@ -143,7 +141,7 @@ def calculate_salary_logic(df_raw, savings_pct, interest_rate):
         
         if pd.isna(row['End Year (BS)']) or pd.isna(row['End Month']):
             st.error(f"Validation Error: Please ensure you specify the final 'End Year (BS)' and 'End Month' in your last career row choice.")
-            return 0, 0, pd.DataFrame(), pd.DataFrame()
+            return 0, pd.DataFrame(), pd.DataFrame()
             
         ey, em = int(row['End Year (BS)']), int(row['End Month'])
         
@@ -157,6 +155,7 @@ def calculate_salary_logic(df_raw, savings_pct, interest_rate):
             m_start = sm if curr_year == sy else 1
             m_end = em if curr_year == ey else 12
             
+            # Temporary track containers for the single precise year sub-loop
             year_salary = 0
             year_grade = 0
             year_festival = 0
@@ -165,6 +164,7 @@ def calculate_salary_logic(df_raw, savings_pct, interest_rate):
                 curr_linear = (curr_year * 12) + curr_month
                 months_elapsed = curr_linear - start_linear
                 
+                # Enforce completed 12-month seniority blocks
                 completed_years = months_elapsed // 12
                 basic, r1, c1, r2, c2 = get_historical_metrics(rank, curr_year)
                 
@@ -177,22 +177,14 @@ def calculate_salary_logic(df_raw, savings_pct, interest_rate):
                 else: # Modern standard single ceiling ruleset
                     grade_pay = min(completed_years, c1) * r1
                     
-                month_earnings = basic + grade_pay
                 year_salary += basic
                 year_grade += grade_pay
                 
                 # Execute Ashwin Dashain Bonus filter trigger (Month 6 = Ashwin)
-                month_festival = 0
                 if curr_month == 6: 
-                    month_festival = (basic + grade_pay)
-                    year_festival += month_festival
-                
-                total_month_pay = month_earnings + month_festival
-                
-                # 📈 INTEGRATED MONTHLY COMPOUND INTEREST ENGINE
-                monthly_savings_deposit = total_month_pay * savings_factor
-                total_accumulated_savings = (total_accumulated_savings + monthly_savings_deposit) * (1.0 + monthly_interest_rate)
+                    year_festival += (basic + grade_pay)
             
+            # Aggregate year-specific elements down to the structural block tracking lists
             block_salary += year_salary
             block_grade += year_grade
             block_festival += year_festival
@@ -219,19 +211,12 @@ def calculate_salary_logic(df_raw, savings_pct, interest_rate):
             "Grand Total Earnings": block_total
         })
         
-    return grand_total, total_accumulated_savings, pd.DataFrame(breakdown_by_post), pd.DataFrame(breakdown_by_year)
+    return grand_total, pd.DataFrame(breakdown_by_post), pd.DataFrame(breakdown_by_year)
 
 # 5. USER INTERFACE FORM DESIGN
-st.subheader("Step 1: Map Your Sequential Appointment & Promotion Dates ")
-st.subheader("       सुरू देखिका आफ्ना हरेक पदको सुरू नियुक्ति वा बढुवा मिति क्रमशः लेख्दै जानुहोस ।")
-
-# Financial Input Sidebar Widgets
-st.sidebar.markdown("### 🏦 Future Wealth Estimator Settings")
-pct_input = st.sidebar.number_input("Monthly Savings Goal (%)", min_value=0.1, max_value=100.0, value=1.0, step=0.5, help="What percentage of your gross earnings would you save each month?")
-rate_input = st.sidebar.number_input("Bank Interest Rate (% p.a.)", min_value=0.0, max_value=25.0, value=5.0, step=0.25, help="Annual compound interest rate offered by the bank.")
-
+st.subheader("Step 1: सुरू देखिका आफ्ना हरेक पदको सुरू नियुक्ति वा बढुवा मिति क्रमशः लेख्दै जानुहोस।")
 st.info("💡 **Instructions:** Enter only the start dates for your positions. The app will automatically calculate the end date based on your next promotion. You only need to provide an end date for the final row.")
-st.info("💡 ** नोटः प्रत्येक पदको सुरू मिति मात्र लेख्नुहोला । अन्तिम पदमा मात्र अन्तिम मिति वा जुन मितिसम्मको तलव हिसाव गर्ने हो, सो मिति लेख्नुहोला । हामीले तपाइको ग्रेड रकम र दशै खर्च समेत संलग्न गरी देखाउने छौं ।")
+st.info("💡 ** नोटः प्रत्येक पदको सुरू मिति मात्र लेख्नुहोला । अन्तिम पदमा मात्र अन्तिम मिति वा जुन मितिसम्मको तलव हिसाव गर्ने हो, सो मिति लेख्नुहोला । हामीले तपाइको ग्रेड रकम र दशै खर्च समेत संलग्न गरी देखाउने छौं। साथै - पद छान्न Post मा Double Click गर्नुहोला । कुनै पनि रेकर्ड हटाउन, रेकर्डको सुरूमा क्लिक गरी Delete गर्नुहोला। रेकर्ड थप्न तल पट्टि नयाँ कोठामा क्लिक गरी लेख्नुहोला।")
 
 # Preloaded profile case showcasing hands-free chaining architecture
 init_profile = {
@@ -259,28 +244,31 @@ edited_grid = st.data_editor(
 
 st.write("---")
 if st.button("तलव हिसाव गर्नुहोस", type="primary"):
-    grand_total, total_savings, df_res, df_yearly = calculate_salary_logic(edited_grid, pct_input, rate_input)
+    grand_total, df_res, df_yearly = calculate_salary_logic(edited_grid)
     if grand_total > 0:
         st.success("### System Processing Complete!")
         
-        # Display primary lifetime earnings summary metric
-        st.metric(label="तपाइको जिन्दगीभरको तलवी कमाइको अनुमानित हिसावः", value=f"Rs. {grand_total:,.0f}")
+        # Display summary container metrics
+        st.metric(label="तपाइको जिन्दगीभरको तलवी कमाइको अनुमानित हिसावः)", value=f"Rs. {grand_total:,.0f}")
         st.write("---")
         
-        # Display Table 1: Chained Payroll Distributions View
         st.write("**Chained Payroll Distributions View:**")
+        
+        # Apply standard currency formatting style properties to all requested amount columns
         formatted_df = df_res.style.format({
             "Total Salary Amt": "Rs. {:,.0f}",
             "Total Grade Amt": "Rs. {:,.0f}",
             "Total Festival Allowance Amt": "Rs. {:,.0f}",
             "Grand Total Earnings": "Rs. {:,.0f}"
         })
+        
         st.dataframe(formatted_df, use_container_width=True, hide_index=True)
         st.write("---")
         
-        # Display Table 2: Year-by-Year Optional Expander Breakdown
-        with st.expander("🔍 View Year-by-Year Detailed Breakdown (वर्षगत विस्तृत विवरण हेर्नुहोस्)"):
+        # 🟢 NEW COMPONENT: OPTIONAL YEAR-BY-YEAR DETAILED DROPDOWN EXPANDER
+        with st.expander("🔍 हरेक वर्षको विस्तृत विवरण हेर्नुहोस् (View Year-by-Year Detailed Breakdown)"):
             st.write("Detailed chronological audit history generated directly from active Personnel Record matrices:")
+            
             formatted_yearly_df = df_yearly.style.format({
                 "Salary": "Rs. {:,.0f}",
                 "Grade": "Rs. {:,.0f}",
@@ -288,14 +276,6 @@ if st.button("तलव हिसाव गर्नुहोस", type="primary
                 "Total Payout": "Rs. {:,.0f}"
             })
             st.dataframe(formatted_yearly_df, use_container_width=True, hide_index=True)
-            
-        st.write("---")
-        
-        # 🟢 CORRECTED PLACEMENT: HIGH IMPACT FINALE SAVINGS BLOCK (At the very end)
-        st.warning(f"### 💸 आँखा खोल्ने बचत हिसाब - Had You Saved Some Money? ()")
-        st.write(f"Had you consistently saved a small **{pct_input}%** of your monthly pay at a bank interest rate of **{rate_input}%** compounded monthly up to now:")
-        st.markdown(f"## 💰 You would have **Rs. {total_savings:,.0f}** money saved in your bank account today!")
-        st.caption("A small financial discipline compounded over time creates massive lifelong security. Start saving today!")
 
 
 # ==========================================
