@@ -351,7 +351,7 @@ if st.session_state.get("calc_success", False):
         st.write(f"यदि तपाइले मासिक तलवको केवल **{pct_input}%** मात्र रकम **{rate_input}%** व्याजदरमा बैंकमा बचाएको भए मासिक चक्रवर्ती व्याजले आजसम्मः ")
         st.markdown(f"## 💰 नेपाली रकम **Rs. {active_savings:,.0f}** बैंकमा बचत रहेको हुन्थ्यो!")
         
-    st.caption("सानो बचत अनुशासनले जीवन सुरक्षामा टेवा दिन्छ । आजैदेखि बचत करना थालौं । A small financial discipline compounded over time creates massive lifelong security. Start saving today!")
+    st.caption("सानो बचत अनुशासनले जीवन सुरक्षामा टेवा दिन्छ । आजैदेखि बचत गर्न थालौं । A small financial discipline compounded over time creates massive lifelong security. Start saving today!")
     st.write("---")
     
     # SCHEDULE BUTTON WITH ISOLATED SAVINGS & INTEREST COLUMNS
