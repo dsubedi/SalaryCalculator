@@ -332,7 +332,7 @@ if st.session_state.get("calc_success", False):
     st.write("---")
     
     # FINALE INTERACTIVE SAVINGS INTERFACE
-    st.warning(f"### 🏦 Had You Saved Some Money? (एउटा आँखा खोल्ने हिसाव)")
+    st.warning(f"### 🏦 यदि तलवको सानो अंश बचाएर राखेको भए? एक हिसाव - Had You Saved Some Money?")
     st.write("मासिक बचतको अंश र व्याजको दर परिवर्तन गरेर चक्रवर्ती बचत कति हुने रहेछ, हेर्दै जाउँ त - Adjust the parameters below to see how a small monthly savings plan would look today with compound interest:")
     
     inp_col1, inp_col2 = st.columns(2)
