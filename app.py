@@ -332,7 +332,7 @@ if st.session_state.get("calc_success", False):
     st.write("---")
     
     # FINALE INTERACTIVE SAVINGS INTERFACE
-    st.warning(f"### 🏦 Had You Saved Some Money? (एउटा आँखा खोल्ने हिसाव)")
+    st.warning(f"### 🏦 सानो बचत गरेको भए? - आँखा खोल्ने एक हिसाव - Had You Saved Some Money?")
     
     # 🌟 NEW ARCHITECTURE: Creating a visual placeholder at line 335 to display outcomes first!
     visual_outcome_placeholder = st.container()
