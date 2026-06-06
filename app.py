@@ -316,22 +316,22 @@ if st.session_state.get("calc_success", False):
     st.write("---")
     
     # FINALE INTERACTIVE SAVINGS INTERFACE
-    st.warning(f"### 🏦 Had You Saved Some Money? (एउटा आँखा खोल्ने हिसाव)")
-    st.write("Adjust the parameters below to see how a small monthly savings plan would look today with compound interest:")
+    st.warning(f"### 🏦 सोच्न बाध्य बनाउने एउटा हिसाव - बचत गरेको भए? Had You Saved Some Money?")
+    st.write(f"यदि तपाइले मासिक तलवको केवल **{pct_input}%** मात्र रकम **{rate_input}%** व्याजदरमा बैंकमा बचाएको भए मासिक चक्रवर्ती व्याजले आजसम्मः ")
+    st.markdown(f"## 💰 नेपाली रूपयाँ **Rs. {active_savings:,.0f}** खातामा जम्मा भएको हुन्थ्यो!")
+    st.caption("सानै भएपनि घरेलु बित्तीय अनुशासनले आफै जीवन सुरक्षा गर्न सक्नेछौं । आजैदेखि बचत गर्न थालौं!! A small financial discipline compounded over time creates massive lifelong security. Start saving today!")
+    st.write("---")
+
+    st.write("मासिक बचतको अंश र व्याजको दर परिवर्तन गरेर चक्रवर्ती बचत कति हुने रहेछ, हेर्दै जाउँ!! Adjust the parameters below to see how a small monthly savings plan would look today with compound interest:")
     
     inp_col1, inp_col2 = st.columns(2)
     with inp_col1:
-        pct_input = st.number_input("Monthly Savings Goal (%)", min_value=0.1, max_value=100.0, value=1.0, step=0.5, key="final_pct_input")
+        pct_input = st.number_input("मासिक वचत लक्ष - Monthly Savings Goal (%)", min_value=0.1, max_value=100.0, value=1.0, step=0.5, key="final_pct_input")
     with inp_col2:
-        rate_input = st.number_input("Bank Interest Rate (% p.a.)", min_value=0.0, max_value=25.0, value=5.0, step=0.25, key="final_rate_input")
+        rate_input = st.number_input("बैंक व्याजदर Bank Interest Rate (% p.a.)", min_value=0.0, max_value=25.0, value=5.0, step=0.25, key="final_rate_input")
         
     # Re-calculate live data matrix vectors on the fly
     _, active_savings, _, df_yearly_live = calculate_salary_logic(edited_grid, pct_input, rate_input)
-    
-    st.write(f"Had you consistently saved a small **{pct_input}%** of your monthly pay at a bank interest rate of **{rate_input}%** compounded monthly up to now:")
-    st.markdown(f"## 💰 You would have **Rs. {active_savings:,.0f}** money saved in your bank account today!")
-    st.caption("A small financial discipline compounded over time creates massive lifelong security. Start saving today!")
-    st.write("---")
     
     # 📊 SCHEDULE BUTTON WITH ISOLATED SAVINGS & INTEREST COLUMNS
     if st.button("📊 Show Annual Accumulation Schedule (वार्षिक बचत तालिका हेर्नुहोस्)", type="secondary"):
