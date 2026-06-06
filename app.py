@@ -247,8 +247,8 @@ init_profile = {
     "Category": ["Non-Technical", "Non-Technical", "Non-Technical", ""],
     "Start Year (BS)": [2054, 2061, 2068, None],
     "Start Month": [4, 4, 7, None],
-    "End Year (BS)": [None, None, 2079, None], 
-    "End Month": [None, None, 12, None]        
+    "End Year (BS)": [None, None, None, None], 
+    "End Month": [None, None, None, None]        
 }
 df_profile = pd.DataFrame(init_profile)
 
