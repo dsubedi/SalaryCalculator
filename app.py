@@ -1,6 +1,7 @@
 import streamlit as st
 import numpy as np
 import pandas as pd
+import datetime
 
 # 1. PAGE SETUP & TITLES
 st.set_page_config(page_title="dsubedi Nijamati Pay Calculator जम्मा तलव हिसाव", layout="wide")
@@ -141,11 +142,29 @@ def calculate_salary_logic(df_raw, savings_pct, interest_rate):
         rank = row['Post / Rank']
         sy, sm = int(row['Start Year (BS)']), int(row['Start Month'])
         
-        if pd.isna(row['End Year (BS)']) or pd.isna(row['End Month']):
-            st.error(f"Validation Error: Please ensure you specify the final 'End Year (BS)' and 'End Month' in your last career row choice.")
-            return 0, 0, pd.DataFrame(), pd.DataFrame()
-            
-        ey, em = int(row['End Year (BS)']), int(row['End Month'])
+        # 📈 DYNAMIC GREGORIAN-TO-BIKRAM SAMBAT TRANSLATION FALLBACK ENGINE
+        today = datetime.date.today()
+        year_offset = 57 if (today.month > 4 or (today.month == 4 and today.day >= 14)) else 56
+        current_nepali_year = today.year + year_offset
+        
+        m = today.month
+        d = today.day
+        if m == 1: current_nepali_month = 9 if d < 15 else 10
+        elif m == 2: current_nepali_month = 10 if d < 13 else 11
+        elif m == 3: current_nepali_month = 11 if d < 14 else 12
+        elif m == 4: current_nepali_month = 12 if d < 14 else 1
+        elif m == 5: current_nepali_month = 1 if d < 15 else 2
+        elif m == 6: current_nepali_month = 2 if d < 15 else 3
+        elif m == 7: current_nepali_month = 3 if d < 16 else 4
+        elif m == 8: current_nepali_month = 4 if d < 17 else 5
+        elif m == 9: current_nepali_month = 5 if d < 17 else 6
+        elif m == 10: current_nepali_month = 6 if d < 18 else 7
+        elif m == 11: current_nepali_month = 7 if d < 17 else 8
+        elif m == 12: current_nepali_month = 8 if d < 16 else 9
+
+        # Fallback snapped directly if fields are left entirely empty
+        ey = int(row['End Year (BS)']) if not pd.isna(row['End Year (BS)']) else current_nepali_year
+        em = int(row['End Month']) if not pd.isna(row['End Month']) else current_nepali_month
         
         block_salary = 0
         block_grade = 0
@@ -191,7 +210,7 @@ def calculate_salary_logic(df_raw, savings_pct, interest_rate):
                 
                 total_month_pay = month_earnings + month_festival
                 
-                # 📈 INTEGRATED MONTHLY COMPOUND INTEREST ENGINE
+                # 📈 MONTHLY COMPOUND INTEREST ENGINE
                 monthly_savings_deposit = total_month_pay * savings_factor
                 interest_this_month = (total_accumulated_savings + monthly_savings_deposit) * monthly_interest_rate
                 total_accumulated_savings = (total_accumulated_savings + monthly_savings_deposit) * (1.0 + monthly_interest_rate)
@@ -238,8 +257,8 @@ if "render_schedule" not in st.session_state:
 st.subheader("Step 1: Map Your Sequential Appointment & Promotion Dates ")
 st.subheader("       सुरू देखिका आफ्ना हरेक पदको सुरू नियुक्ति वा बढुवा मिति क्रमशः लेख्दै जानुहोस ।")
 
-st.info("💡 **Instructions:** Enter only the start dates for your positions. The app will automatically calculate the end date based on your next promotion. You only need to provide an end date for the final row.")
-st.info("💡 ** नोटः प्रत्येक पदको सुरू मिति मात्र लेख्नुहोला । अन्तिम पदमा मात्र अन्तिम मिति वा जुन मितिसम्मको तलव हिसाव गर्ने हो, सो मिति लेख्नुहोला । हामीले तपाइको ग्रेड रकम र दशै खर्च समेत संलग्न गरी देखाउने छौं ।")
+st.info("💡 **Instructions:** Enter only the start dates for your positions. The app will automatically calculate the end date based on your next promotion. You can safely leave the End Year and End Month of your last position completely blank to calculate up to today automatically!")
+st.info("💡 ** नोटः प्रत्येक पदको सुरू मिति मात्र लेख्नुहोला । अन्तिम पदको अन्तिम मिति खाली छोडिदिनुभएमा सफ्टवेयरले स्वचालित रूपमा आजको महिनासम्मको हिसाव निकाल्नेछ।")
 
 # Preloaded profile case showcasing hands-free chaining architecture
 init_profile = {
@@ -260,8 +279,8 @@ edited_grid = st.data_editor(
         "Category": st.column_config.SelectboxColumn(options=CATEGORIES, required=True),
         "Start Year (BS)": st.column_config.NumberColumn(min_value=2017, max_value=2085, format="%d"),
         "Start Month": st.column_config.SelectboxColumn(options=list(range(1, 13))),
-        "End Year (BS)": st.column_config.NumberColumn(min_value=2017, max_value=2085, format="%d", help="Fill this out ONLY for your current/last position."),
-        "End Month": st.column_config.SelectboxColumn(options=list(range(1, 13)), help="Fill this out ONLY for your current/last position."),
+        "End Year (BS)": st.column_config.NumberColumn(min_value=2017, max_value=2085, format="%d", help="Leave blank for your last position to calculate up to today."),
+        "End Month": st.column_config.SelectboxColumn(options=list(range(1, 13)), help="Leave blank for your last position to calculate up to today."),
     }
 )
 
@@ -325,7 +344,7 @@ if st.session_state.get("calc_success", False):
     # Re-calculate live data matrix vectors on the fly using the updated live inputs
     _, active_savings, _, df_yearly_live = calculate_salary_logic(edited_grid, pct_input, rate_input)
     
-    # 🟢 PERFECTLY INDENTED: This line can never throw a NameError now!
+    # 🟢 PERFECTLY INDENTED WITH CORRECT VARIABLE HOOKS
     st.write(f"यदि तपाइले मासिक तलवको केवल **{pct_input}%** मात्र रकम **{rate_input}%** व्याजदरमा बैंकमा बचाएको भए मासिक चक्रवर्ती व्याजले आजसम्मः ")
     st.markdown(f"## 💰 नेपाली रकम **Rs. {active_savings:,.0f}** बैंकमा बचत रहेको हुन्थ्यो!")
     st.caption("सानो बचत अनुशासनले जीवन सुरक्षामा टेवा दिन्छ । आजैदेखि बचत गर्न थालौं । A small financial discipline compounded over time creates massive lifelong security. Start saving today!")
