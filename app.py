@@ -191,12 +191,9 @@ def calculate_salary_logic(df_raw, savings_pct, interest_rate):
                 
                 total_month_pay = month_earnings + month_festival
                 
-                # 📈 INTEGRATED MONTHLY COMPOUND INTEREST ENGINE WITH FRACTIONAL SNAPSHOTS
+                # 📈 INTEGRATED MONTHLY COMPOUND INTEREST ENGINE
                 monthly_savings_deposit = total_month_pay * savings_factor
-                
-                # Isolate interest generated purely during this specific monthly frame
                 interest_this_month = (total_accumulated_savings + monthly_savings_deposit) * monthly_interest_rate
-                
                 total_accumulated_savings = (total_accumulated_savings + monthly_savings_deposit) * (1.0 + monthly_interest_rate)
                 
                 year_savings_deposited += monthly_savings_deposit
@@ -214,8 +211,8 @@ def calculate_salary_logic(df_raw, savings_pct, interest_rate):
                 "Grade": year_grade,
                 "Festival": year_festival,
                 "Total Payout": year_total,
-                "Savings Deposited": year_savings_deposited,      # Logged component
-                "Interest Earned": year_interest_earned,          # Logged component
+                "Savings Deposited": year_savings_deposited,      
+                "Interest Earned": year_interest_earned,          
                 "Accumulated Savings Balance": total_accumulated_savings
             })
                     
@@ -279,6 +276,7 @@ if st.button("तलव हिसाव गर्नुहोस", type="primary
     st.session_state.df_yearly = df_yearly
     st.session_state.edited_grid = edited_grid
 
+# ⚠️ EVERYTHING BELOW DEPENDS ON CALCULATIONS AND IS SECURELY INDENTED 
 if st.session_state.get("calc_success", False):
     grand_total = st.session_state.grand_total
     df_res = st.session_state.df_res
@@ -303,7 +301,6 @@ if st.session_state.get("calc_success", False):
     # Display Table 2: Year-by-Year Optional Expander Breakdown
     with st.expander("🔍 View Year-by-Year Detailed Breakdown (वर्षगत विस्तृत विवरण हेर्नुहोस्)"):
         st.write("Detailed chronological audit history generated directly from active Personnel Record matrices:")
-        # Drop investment components to keep Table 2 explicitly to standard salary vectors
         clean_yearly_df = df_yearly.drop(columns=["Accumulated Savings Balance", "Savings Deposited", "Interest Earned"], errors="ignore")
         formatted_yearly_df = clean_yearly_df.style.format({
             "Salary": "Rs. {:,.0f}",
@@ -316,24 +313,25 @@ if st.session_state.get("calc_success", False):
     st.write("---")
     
     # FINALE INTERACTIVE SAVINGS INTERFACE
-    st.warning(f"### 🏦 सोच्न बाध्य बनाउने एउटा हिसाव - बचत गरेको भए? Had You Saved Some Money?")
-    st.write(f"यदि तपाइले मासिक तलवको केवल **{pct_input}%** मात्र रकम **{rate_input}%** व्याजदरमा बैंकमा बचाएको भए मासिक चक्रवर्ती व्याजले आजसम्मः ")
-    st.markdown(f"## 💰 नेपाली रूपयाँ **Rs. {active_savings:,.0f}** खातामा जम्मा भएको हुन्थ्यो!")
-    st.caption("सानै भएपनि घरेलु बित्तीय अनुशासनले आफै जीवन सुरक्षा गर्न सक्नेछौं । आजैदेखि बचत गर्न थालौं!! A small financial discipline compounded over time creates massive lifelong security. Start saving today!")
-    st.write("---")
-
-    st.write("मासिक बचतको अंश र व्याजको दर परिवर्तन गरेर चक्रवर्ती बचत कति हुने रहेछ, हेर्दै जाउँ!! Adjust the parameters below to see how a small monthly savings plan would look today with compound interest:")
+    st.warning(f"### 🏦 Had You Saved Some Money? (एउटा आँखा खोल्ने हिसाव)")
+    st.write("Adjust the parameters below to see how a small monthly savings plan would look today with compound interest:")
     
     inp_col1, inp_col2 = st.columns(2)
     with inp_col1:
-        pct_input = st.number_input("मासिक वचत लक्ष - Monthly Savings Goal (%)", min_value=0.1, max_value=100.0, value=1.0, step=0.5, key="final_pct_input")
+        pct_input = st.number_input("Monthly Savings Goal (%)", min_value=0.1, max_value=100.0, value=1.0, step=0.5, key="final_pct_input")
     with inp_col2:
-        rate_input = st.number_input("बैंक व्याजदर Bank Interest Rate (% p.a.)", min_value=0.0, max_value=25.0, value=5.0, step=0.25, key="final_rate_input")
+        rate_input = st.number_input("Bank Interest Rate (% p.a.)", min_value=0.0, max_value=25.0, value=5.0, step=0.25, key="final_rate_input")
         
-    # Re-calculate live data matrix vectors on the fly
+    # Re-calculate live data matrix vectors on the fly using the updated live inputs
     _, active_savings, _, df_yearly_live = calculate_salary_logic(edited_grid, pct_input, rate_input)
     
-    # 📊 SCHEDULE BUTTON WITH ISOLATED SAVINGS & INTEREST COLUMNS
+    # 🟢 PERFECTLY INDENTED: This line can never throw a NameError now!
+    st.write(f"यदि तपाइले मासिक तलवको केवल **{pct_input}%** मात्र रकम **{rate_input}%** व्याजदरमा बैंकमा बचाएको भए मासिक चक्रवर्ती व्याजले आजसम्मः ")
+    st.markdown(f"## 💰 You would have **Rs. {active_savings:,.0f}** money saved in your bank account today!")
+    st.caption("A small financial discipline compounded over time creates massive lifelong security. Start saving today!")
+    st.write("---")
+    
+    # SCHEDULE BUTTON WITH ISOLATED SAVINGS & INTEREST COLUMNS
     if st.button("📊 Show Annual Accumulation Schedule (वार्षिक बचत तालिका हेर्नुहोस्)", type="secondary"):
         st.session_state.render_schedule = True
         
@@ -341,7 +339,6 @@ if st.session_state.get("calc_success", False):
         st.info("### 📈 Chronological Wealth Accumulation Schedule")
         st.write("This table isolates how your custom monthly savings grew year-by-year with explicit out-of-pocket deposits vs compound interest injections:")
         
-        # Format and map complete 7-column metrics layout explicitly
         schedule_view_df = df_yearly_live[["Year", "Post", "Total Payout", "Savings Deposited", "Interest Earned", "Accumulated Savings Balance"]].copy()
         schedule_view_df.columns = ["Year", "Post", "Annual Total Pay", "Annual Savings Added", "Annual Interest Earned", "Accumulated Savings Balance"]
         
