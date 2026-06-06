@@ -295,7 +295,7 @@ if st.button("तलव हिसाव गर्नुहोस", type="primary
     st.session_state.df_yearly = df_yearly
     st.session_state.edited_grid = edited_grid
 
-# ⚠️ EVERYTHING BELOW DEPENDS ON CALCULATIONS AND IS SECURELY INDENTED 
+# Check memory container state to maintain live dashboard data layout cleanly
 if st.session_state.get("calc_success", False):
     grand_total = st.session_state.grand_total
     df_res = st.session_state.df_res
@@ -332,7 +332,11 @@ if st.session_state.get("calc_success", False):
     st.write("---")
     
     # FINALE INTERACTIVE SAVINGS INTERFACE
-    st.warning(f"### 🏦 यदि तलवको सानो अंश बचाएर राखेको भए? एक हिसाव - Had You Saved Some Money?")
+    st.warning(f"### 🏦 Had You Saved Some Money? (एउटा आँखा खोल्ने हिसाव)")
+    
+    # 🌟 NEW ARCHITECTURE: Creating a visual placeholder at line 335 to display outcomes first!
+    visual_outcome_placeholder = st.container()
+    
     st.write("मासिक बचतको अंश र व्याजको दर परिवर्तन गरेर चक्रवर्ती बचत कति हुने रहेछ, हेर्दै जाउँ त - Adjust the parameters below to see how a small monthly savings plan would look today with compound interest:")
     
     inp_col1, inp_col2 = st.columns(2)
@@ -344,9 +348,11 @@ if st.session_state.get("calc_success", False):
     # Re-calculate live data matrix vectors on the fly using the updated live inputs
     _, active_savings, _, df_yearly_live = calculate_salary_logic(edited_grid, pct_input, rate_input)
     
-    # 🟢 PERFECTLY INDENTED WITH CORRECT VARIABLE HOOKS
-    st.write(f"यदि तपाइले मासिक तलवको केवल **{pct_input}%** मात्र रकम **{rate_input}%** व्याजदरमा बैंकमा बचाएको भए मासिक चक्रवर्ती व्याजले आजसम्मः ")
-    st.markdown(f"## 💰 नेपाली रकम **Rs. {active_savings:,.0f}** बैंकमा बचत रहेको हुन्थ्यो!")
+    # 🌟 NEW ARCHITECTURE: Lines 348 & 349 are injected dynamically here into the top placeholder!
+    with visual_outcome_placeholder:
+        st.write(f"यदि तपाइले मासिक तलवको केवल **{pct_input}%** मात्र रकम **{rate_input}%** व्याजदरमा बैंकमा बचाएको भए मासिक चक्रवर्ती व्याजले आजसम्मः ")
+        st.markdown(f"## 💰 नेपाली रकम **Rs. {active_savings:,.0f}** बैंकमा बचत रहेको हुन्थ्यो!")
+        
     st.caption("सानो बचत अनुशासनले जीवन सुरक्षामा टेवा दिन्छ । आजैदेखि बचत गर्न थालौं । A small financial discipline compounded over time creates massive lifelong security. Start saving today!")
     st.write("---")
     
