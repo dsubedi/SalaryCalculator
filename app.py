@@ -7,7 +7,7 @@ st.set_page_config(page_title="dsubedi Nijamati Pay Calculator जम्मा �
 st.title("🇳🇵 निजामती सेवा - Pay Calculator - by Devi Subedi")
 st.write("For Personal Reference only. Not Official Software. No official Legitimacy.")
 st.write("यो व्यक्तिगत तवरमा तयार पारिएको सफ्टवेयर हो। अफिसियल मान्यता दिँदैन । आफ्नो तलव आँकलन गर्न सघाउ पुगोस् भनेर स्वयंसेवाका रूपमा तयार पारिएको हो ।")
-st.write("यसमा २०१७ साल देखि २०७9 सालसम्मका तलव, ग्रेड र ग्रेड सीमा तथा दशै खर्चका विवरण मात्र हिसाव गरिएको छ। विशेष भत्ता, दुर्गम भत्ता लगायत अन्य सुविधा समावेश छैनन ।")
+st.write("यसमा २०१७ साल देखि २०७९ सालसम्मका तलव, ग्रेड र ग्रेड सीमा तथा दशै खर्चका विवरण मात्र हिसाव गरिएको छ। विशेष भत्ता, दुर्गम भत्ता लगायत अन्य सुविधा समावेश छैनन ।")
 
 # 2. SEED MATRIX TIMELINES (31 SCALE MILESTONES)
 SCALE_YEARS = [
@@ -160,6 +160,8 @@ def calculate_salary_logic(df_raw, savings_pct, interest_rate):
             year_salary = 0
             year_grade = 0
             year_festival = 0
+            year_savings_deposited = 0.0
+            year_interest_earned = 0.0
             
             for curr_month in range(m_start, m_end + 1):
                 curr_linear = (curr_year * 12) + curr_month
@@ -189,9 +191,16 @@ def calculate_salary_logic(df_raw, savings_pct, interest_rate):
                 
                 total_month_pay = month_earnings + month_festival
                 
-                # 📈 INTEGRATED MONTHLY COMPOUND INTEREST ENGINE
+                # 📈 INTEGRATED MONTHLY COMPOUND INTEREST ENGINE WITH FRACTIONAL SNAPSHOTS
                 monthly_savings_deposit = total_month_pay * savings_factor
+                
+                # Isolate interest generated purely during this specific monthly frame
+                interest_this_month = (total_accumulated_savings + monthly_savings_deposit) * monthly_interest_rate
+                
                 total_accumulated_savings = (total_accumulated_savings + monthly_savings_deposit) * (1.0 + monthly_interest_rate)
+                
+                year_savings_deposited += monthly_savings_deposit
+                year_interest_earned += interest_this_month
             
             block_salary += year_salary
             block_grade += year_grade
@@ -205,7 +214,9 @@ def calculate_salary_logic(df_raw, savings_pct, interest_rate):
                 "Grade": year_grade,
                 "Festival": year_festival,
                 "Total Payout": year_total,
-                "Accumulated Savings Balance": total_accumulated_savings  # Passed seamlessly to final table views
+                "Savings Deposited": year_savings_deposited,      # Logged component
+                "Interest Earned": year_interest_earned,          # Logged component
+                "Accumulated Savings Balance": total_accumulated_savings
             })
                     
         block_total = block_salary + block_grade + block_festival
@@ -259,17 +270,15 @@ edited_grid = st.data_editor(
 
 st.write("---")
 if st.button("तलव हिसाव गर्नुहोस", type="primary"):
-    st.session_state.render_schedule = False  # Reset schedule state flag upon a fresh calculation trigger run
+    st.session_state.render_schedule = False  
     grand_total, total_savings, df_res, df_yearly = calculate_salary_logic(edited_grid, 1.0, 5.0)
     
-    # Store calculation matrix arrays safely to session memory state to protect against reactive trigger refreshes
     st.session_state.calc_success = True
     st.session_state.grand_total = grand_total
     st.session_state.df_res = df_res
     st.session_state.df_yearly = df_yearly
     st.session_state.edited_grid = edited_grid
 
-# Check memory container state to maintain live dashboard data layout cleanly
 if st.session_state.get("calc_success", False):
     grand_total = st.session_state.grand_total
     df_res = st.session_state.df_res
@@ -294,7 +303,9 @@ if st.session_state.get("calc_success", False):
     # Display Table 2: Year-by-Year Optional Expander Breakdown
     with st.expander("🔍 View Year-by-Year Detailed Breakdown (वर्षगत विस्तृत विवरण हेर्नुहोस्)"):
         st.write("Detailed chronological audit history generated directly from active Personnel Record matrices:")
-        formatted_yearly_df = df_yearly.drop(columns=["Accumulated Savings Balance"]).style.format({
+        # Drop investment components to keep Table 2 explicitly to standard salary vectors
+        clean_yearly_df = df_yearly.drop(columns=["Accumulated Savings Balance", "Savings Deposited", "Interest Earned"], errors="ignore")
+        formatted_yearly_df = clean_yearly_df.style.format({
             "Salary": "Rs. {:,.0f}",
             "Grade": "Rs. {:,.0f}",
             "Festival": "Rs. {:,.0f}",
@@ -314,7 +325,7 @@ if st.session_state.get("calc_success", False):
     with inp_col2:
         rate_input = st.number_input("Bank Interest Rate (% p.a.)", min_value=0.0, max_value=25.0, value=5.0, step=0.25, key="final_rate_input")
         
-    # Recalculate saving statistics on the fly based on current inline user parameters
+    # Re-calculate live data matrix vectors on the fly
     _, active_savings, _, df_yearly_live = calculate_salary_logic(edited_grid, pct_input, rate_input)
     
     st.write(f"Had you consistently saved a small **{pct_input}%** of your monthly pay at a bank interest rate of **{rate_input}%** compounded monthly up to now:")
@@ -322,20 +333,22 @@ if st.session_state.get("calc_success", False):
     st.caption("A small financial discipline compounded over time creates massive lifelong security. Start saving today!")
     st.write("---")
     
-    # 🟢 NEW FUNCTIONALITY FINALE BUTTON: ANNUAL ACCUMULATION SCHEDULE VIEW
+    # 📊 SCHEDULE BUTTON WITH ISOLATED SAVINGS & INTEREST COLUMNS
     if st.button("📊 Show Annual Accumulation Schedule (वार्षिक बचत तालिका हेर्नुहोस्)", type="secondary"):
         st.session_state.render_schedule = True
         
     if st.session_state.render_schedule:
         st.info("### 📈 Chronological Wealth Accumulation Schedule")
-        st.write("This table isolates how your custom monthly savings grew year-by-year with complex interest injections:")
+        st.write("This table isolates how your custom monthly savings grew year-by-year with explicit out-of-pocket deposits vs compound interest injections:")
         
-        # Isolate requested structure view columns explicitly
-        schedule_view_df = df_yearly_live[["Year", "Post", "Total Payout", "Accumulated Savings Balance"]].copy()
-        schedule_view_df.columns = ["Year", "Post", "Annual Total Pay", "Accumulated Savings Balance"]
+        # Format and map complete 7-column metrics layout explicitly
+        schedule_view_df = df_yearly_live[["Year", "Post", "Total Payout", "Savings Deposited", "Interest Earned", "Accumulated Savings Balance"]].copy()
+        schedule_view_df.columns = ["Year", "Post", "Annual Total Pay", "Annual Savings Added", "Annual Interest Earned", "Accumulated Savings Balance"]
         
         formatted_schedule_df = schedule_view_df.style.format({
             "Annual Total Pay": "Rs. {:,.0f}",
+            "Annual Savings Added": "Rs. {:,.0f}",
+            "Annual Interest Earned": "Rs. {:,.0f}",
             "Accumulated Savings Balance": "Rs. {:,.0f}"
         })
         st.dataframe(formatted_schedule_df, use_container_width=True, hide_index=True)
