@@ -262,12 +262,12 @@ st.info("💡 ** नोटः प्रत्येक पदको सुरू
 
 # Preloaded profile case showcasing hands-free chaining architecture
 init_profile = {
-    "Post / Rank": ["Khardar", "Nayab Subba", "Section Officer", ""],
-    "Category": ["Non-Technical", "Non-Technical", "Non-Technical", ""],
-    "Start Year (BS)": [2054, 2061, 2068, None],
-    "Start Month": [4, 4, 7, None],
-    "End Year (BS)": [None, None, None, None], 
-    "End Month": [None, None, None, None]        
+    "Post / Rank": ["Khardar", "Nayab Subba", "Section Officer"],
+    "Category": ["Non-Technical", "Non-Technical", "Non-Technical"],
+    "Start Year (BS)": [2054, 2061, 2068],
+    "Start Month": [4, 4, 7],
+    "End Year (BS)": [None, None, None], 
+    "End Month": [None, None, None]        
 }
 df_profile = pd.DataFrame(init_profile)
 
